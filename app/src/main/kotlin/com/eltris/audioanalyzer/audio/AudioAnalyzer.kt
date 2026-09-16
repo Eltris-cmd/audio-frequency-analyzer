@@ -9,11 +9,13 @@ import be.tarsos.dsp.io.android.AudioDispatcher
 import be.tarsos.dsp.ooura.FFT
 import kotlinx.coroutines.*
 import kotlin.math.log10
+import kotlin.math.pow
 import kotlin.math.sqrt
 
 /**
  * Audio Analyzer untuk deteksi frekuensi dan level dB
  * Dioptimalkan untuk perangkat RAM 4GB dengan efficient memory usage
+ * Support 32 frekuensi dalam range 20Hz - 20kHz dengan distribusi logaritmik
  */
 class AudioAnalyzer(private val onFrequencyDataReady: (Map<String, Float>) -> Unit) {
 
@@ -24,13 +26,28 @@ class AudioAnalyzer(private val onFrequencyDataReady: (Map<String, Float>) -> Un
         private const val CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
         private const val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT
         
-        // Target frequencies untuk analisis
-        private val TARGET_FREQUENCIES = listOf(
-            20f, 40f, 60f, 100f, 200f, 500f, 1000f, 2000f, 5000f, 10000f, 20000f
-        )
+        // 32 Target frequencies dengan distribusi logaritmik (20Hz - 20kHz)
+        private val TARGET_FREQUENCIES = generateLogarithmicFrequencies(20f, 20000f, 32)
         
         // Reference pressure for dB calculation (20 µPa)
         private const val REFERENCE_PRESSURE = 0.00002f
+        
+        /**
+         * Generate logarithmic frequency distribution untuk analisis detail
+         * Distribusi logaritmik lebih sesuai dengan human hearing perception
+         */
+        private fun generateLogarithmicFrequencies(minFreq: Float, maxFreq: Float, count: Int): List<Float> {
+            val frequencies = mutableListOf<Float>()
+            val logMin = kotlin.math.log10(minFreq)
+            val logMax = kotlin.math.log10(maxFreq)
+            
+            for (i in 0 until count) {
+                val logValue = logMin + (logMax - logMin) * i / (count - 1)
+                frequencies.add(10f.pow(logValue))
+            }
+            
+            return frequencies
+        }
     }
 
     private var audioDispatcher: AudioDispatcher? = null
@@ -129,7 +146,7 @@ class AudioAnalyzer(private val onFrequencyDataReady: (Map<String, Float>) -> Un
         }
         
         private fun calculateFrequencyData(complexFFT: Array<FloatArray>): Map<String, Float> {
-            val result = mutableMapOf<String, Float>()
+            val result = linkedMapOf<String, Float>()
             val freqBinWidth = SAMPLE_RATE.toFloat() / BUFFER_SIZE
             
             for (targetFreq in TARGET_FREQUENCIES) {
@@ -155,7 +172,13 @@ class AudioAnalyzer(private val onFrequencyDataReady: (Map<String, Float>) -> Un
                     // Clamp nilai dB antara -120 hingga 120
                     val clampedDB = dB.coerceIn(-120f, 120f)
                     
-                    result["${targetFreq.toInt()}Hz"] = clampedDB
+                    // Format frequency label dengan precision
+                    val freqLabel = when {
+                        targetFreq < 1000 -> String.format("%.0f Hz", targetFreq)
+                        else -> String.format("%.1f kHz", targetFreq / 1000)
+                    }
+                    
+                    result[freqLabel] = clampedDB
                 }
             }
             
