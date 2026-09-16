@@ -66,17 +66,23 @@ class MainActivity : AppCompatActivity() {
     private fun setupChart() {
         barChart.apply {
             setDrawBarShadow(false)
-            setDrawValueAboveBar(true)
+            setDrawValueAboveBar(false)
             description.isEnabled = false
-            setMaxVisibleValueCount(11)
+            setMaxVisibleValueCount(32)
             animateY(1000)
+            isScaleXEnabled = true
+            isScaleYEnabled = true
+            isDragXEnabled = true
+            isDragYEnabled = true
             
             // X axis
             xAxis.apply {
                 position = XAxis.XAxisPosition.BOTTOM
                 setDrawGridLines(false)
                 granularity = 1f
-                labelCount = 11
+                labelCount = 8
+                labelRotationAngle = 45f
+                textSize = 9f
             }
             
             // Y axis
@@ -85,11 +91,15 @@ class MainActivity : AppCompatActivity() {
                 axisMaximum = 20f
                 setDrawGridLines(true)
                 labelCount = 8
+                textSize = 10f
             }
             
             axisRight.isEnabled = false
             
-            legend.isEnabled = true
+            legend.apply {
+                isEnabled = true
+                textSize = 11f
+            }
         }
     }
 
@@ -98,24 +108,25 @@ class MainActivity : AppCompatActivity() {
             val entries = mutableListOf<BarEntry>()
             val labels = mutableListOf<String>()
             
-            // Urutkan data berdasarkan frequency
-            val sortedData = frequencyData.entries.sortedBy { 
-                it.key.removeSuffix("Hz").toFloatOrNull() ?: 0f 
-            }
-            
-            sortedData.forEachIndexed { index, (freq, db) ->
+            // Maintain order dari LinkedHashMap yang sudah terurut logaritmik
+            frequencyData.entries.forEachIndexed { index, (freq, db) ->
                 entries.add(BarEntry(index.toFloat(), db))
                 labels.add(freq)
             }
             
             val dataSet = BarDataSet(entries, "dB Level").apply {
                 color = ContextCompat.getColor(this@MainActivity, R.color.purple_500)
-                valueTextSize = 8f
+                valueTextSize = 7f
+                isHighlightEnabled = true
             }
             
-            val barData = BarData(dataSet)
+            val barData = BarData(dataSet).apply {
+                barWidth = 0.85f
+            }
+            
             barChart.data = barData
             barChart.xAxis.valueFormatter = IndexAxisValueFormatter(labels)
+            barChart.notifyDataSetChanged()
             barChart.invalidate()
         }
     }
@@ -123,24 +134,53 @@ class MainActivity : AppCompatActivity() {
     private fun updateDataDisplay(frequencyData: Map<String, Float>) {
         lifecycleScope.launch {
             val displayText = StringBuilder().apply {
-                append("📊 Frequency Analysis Results\n")
-                append("════════════════════════════\n\n")
+                append("📊 32-Band Frequency Analysis\n")
+                append("════════════════════════════════════════════════\n\n")
                 
-                frequencyData.entries
-                    .sortedBy { it.key.removeSuffix("Hz").toFloatOrNull() ?: 0f }
-                    .forEach { (freq, db) ->
-                        val level = when {
-                            db >= 0 -> "🔴 Very Strong"
-                            db >= -20 -> "🟠 Strong"
-                            db >= -40 -> "🟡 Medium"
-                            db >= -60 -> "🟢 Weak"
-                            else -> "⚪ Very Weak"
-                        }
-                        append(String.format("%-8s: %6.2f dB  %s\n", freq, db, level))
+                // Tampilkan dalam 2 kolom untuk efisiensi ruang
+                val freqList = frequencyData.entries.toList()
+                val midPoint = (freqList.size + 1) / 2
+                
+                for (i in 0 until midPoint) {
+                    // Kolom kiri
+                    if (i < freqList.size) {
+                        val (freq, db) = freqList[i]
+                        val level = getLevelIndicator(db)
+                        append(String.format("%-10s: %6.1f dB %s", freq, db, level))
                     }
+                    
+                    // Kolom kanan (jika ada)
+                    if (i + midPoint < freqList.size) {
+                        val (freq, db) = freqList[i + midPoint]
+                        val level = getLevelIndicator(db)
+                        append(String.format("   |   %-10s: %6.1f dB %s", freq, db, level))
+                    }
+                    
+                    append("\n")
+                }
+                
+                // Statistik
+                val avgDb = frequencyData.values.average()
+                val maxDb = frequencyData.values.maxOrNull() ?: 0f
+                val minDb = frequencyData.values.minOrNull() ?: -120f
+                
+                append("\n════════════════════════════════════════════════\n")
+                append(String.format("📈 Statistics:\n"))
+                append(String.format("   Avg: %.2f dB | Max: %.2f dB | Min: %.2f dB\n", avgDb, maxDb, minDb))
             }.toString()
             
             binding.dataTextView.text = displayText
+        }
+    }
+
+    private fun getLevelIndicator(db: Float): String {
+        return when {
+            db >= 0 -> "🔴"
+            db >= -20 -> "🟠"
+            db >= -40 -> "🟡"
+            db >= -60 -> "🟢"
+            db >= -90 -> "🔵"
+            else -> "⚪"
         }
     }
 
@@ -148,7 +188,7 @@ class MainActivity : AppCompatActivity() {
         isAnalyzing = true
         binding.startButton.isEnabled = false
         binding.stopButton.isEnabled = true
-        binding.statusTextView.text = "🔴 Recording... Play noise through speaker"
+        binding.statusTextView.text = "🔴 Recording... Play white/pink noise through speaker"
         audioAnalyzer.startAnalysis()
     }
 
@@ -156,7 +196,7 @@ class MainActivity : AppCompatActivity() {
         isAnalyzing = false
         binding.startButton.isEnabled = true
         binding.stopButton.isEnabled = false
-        binding.statusTextView.text = "✅ Analysis completed"
+        binding.statusTextView.text = "✅ Analysis completed - 32 frequencies detected"
         audioAnalyzer.stopAnalysis()
     }
 
@@ -188,7 +228,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()        if (isAnalyzing) {
+        super.onDestroy()
+        if (isAnalyzing) {
             audioAnalyzer.stopAnalysis()
         }
     }

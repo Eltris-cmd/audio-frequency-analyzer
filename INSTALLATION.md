@@ -168,7 +168,7 @@ Solusi:
 ## Hardware Requirements
 
 | Spesifikasi | Minimum | Recommended |
-|------------|---------|------------|
+|------------|---------|-------------|
 | Android Version | 8.0 (API 26) | 10+ (API 29+) |
 | RAM | 2 GB | 4 GB+ |
 | Storage | 50 MB | 100 MB |
