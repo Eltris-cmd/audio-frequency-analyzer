@@ -1,0 +1,73 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.eltris.audioanalyzer'
+    compileSdk rootProject.ext.compileSdk
+
+    defaultConfig {
+        applicationId "com.eltris.audioanalyzer"
+        minSdk rootProject.ext.minSdk
+        targetSdk rootProject.ext.targetSdk
+        versionCode 1
+        versionName "1.0.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = '11'
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+    // AndroidX
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.preference:preference-ktx:1.2.1'
+    
+    // Material Design
+    implementation 'com.google.android.material:material:1.10.0'
+    
+    // Audio Processing - TarsosDSP for FFT
+    implementation 'be.tarsos.dsp:core:2.5'
+    
+    // Chart Library - Lightweight for low RAM devices
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+    
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1'
+    
+    // Lifecycle
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1'
+    
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}

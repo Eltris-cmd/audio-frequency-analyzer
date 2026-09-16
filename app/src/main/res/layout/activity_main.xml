@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@color/white">
+
+    <!-- Status Text View -->
+    <TextView
+        android:id="@+id/statusTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ready to analyze"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:gravity="center"
+        android:paddingBottom="16dp" />
+
+    <!-- Frequency Chart -->
+    <com.github.mikephil.charting.charts.BarChart
+        android:id="@+id/frequencyChart"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Control Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:spacing="16dp">
+
+        <Button
+            android:id="@+id/startButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Start Analysis"
+            android:textSize="14sp"
+            android:backgroundTint="@color/purple_500"
+            android:textColor="@color/white"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/stopButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Stop"
+            android:textSize="14sp"
+            android:backgroundTint="@color/red_500"
+            android:textColor="@color/white"
+            android:layout_marginStart="8dp" />
+
+    </LinearLayout>
+
+    <!-- Data Display -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="16dp">
+
+        <TextView
+            android:id="@+id/dataTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No data yet. Press 'Start Analysis' to begin."
+            android:textSize="12sp"
+            android:textColor="@color/black"
+            android:fontFamily="monospace"
+            android:lineSpacingExtra="4dp"
+            android:padding="12dp" />
+
+    </ScrollView>
+
+</LinearLayout>

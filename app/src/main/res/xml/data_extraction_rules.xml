@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <domain-config>
+        <domain name="shared_pref" requireUserAction="true">
+            <!--Path to XML file meant to be backed up.-->
+        </domain>
+        <domain name="file">
+            <!--Path to files meant to be backed up.-->
+        </domain>
+        <domain name="database">
+            <!--Path to the database file meant to be backed up.-->
+        </domain>
+    </domain-config>
+    <!--Path to device files not meant to be backed up.-->
+    <device-transfer-list>
+        <exclude domain="sharedpref" path="device.xml"/>
+    </device-transfer-list>
+</data-extraction-rules>
